@@ -34,7 +34,7 @@ class TransformerClassifier(Classifier):
         self.epochs = epochs
 
     def predict(self, data: list):
-        prob = self.predictor.predict_proba(data)[:, 1]
+        prob = np.array(self.predictor.predict_proba(list(data)))[:, 1]
         labels = (prob > self.threshold).astype(int)
         return labels
 
@@ -43,7 +43,7 @@ class TransformerClassifier(Classifier):
 
     def set_threshold(self, x, y):
         pov_num = (np.array(y) == 1).sum()
-        pov_prediction = np.array(self.predict(x)[:, 1])
+        pov_prediction = np.array(self.predict_proba(list(x))[:, 1])
         self.threshold = np.sort(pov_prediction)[::-1][pov_num:pov_num + 2].mean()
         return self
 
@@ -55,7 +55,7 @@ class TransformerClassifier(Classifier):
 
         t = text.Transformer(self.model_name, maxlen=self.max_len, class_names=["0", "1"])
         trn = t.preprocess_train(x, y.to_list())
-        val = t.preprocess_test(x, y.to_list())
+        val = t.preprocess_test(x[:100], y.to_list()[:100])
 
         model = t.get_classifier()
         learner = ktrain.get_learner(model, train_data=trn, val_data=val, batch_size=self.batch_size)
@@ -63,7 +63,7 @@ class TransformerClassifier(Classifier):
 
         self.learner = learner
         self.predictor = ktrain.get_predictor(learner.model, t)
-        self.set_threshold()
+        self.set_threshold(x, y)
 
         return self
 
