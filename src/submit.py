@@ -34,7 +34,11 @@ def prediction_all(test_dir=FilePath.validation_data_path[0],
     for label in labels:
         train_data = Dataset.read_splitted_train_file(os.path.join(train_file_dir, label+".csv"))
         cls = TransformerClassifier(**config).train(train_data["data"], train_data["label"])
-        label_prediction_result = cls.predict(test_text["data"])
+
+        prob = cls.predict_prob(test_text["data"])
+        cls.save_prob_prediction_result(prob, label, temp_path)
+
+        label_prediction_result = cls.prob_convert_to_label(prob)
         Dataset.save_label_prediction_result(label_prediction_result, label, temp_path)
 
     final = Dataset.merge_all_prediction_in_dir(temp_path, labels)
@@ -43,8 +47,8 @@ def prediction_all(test_dir=FilePath.validation_data_path[0],
     #
 
 if __name__ == '__main__':
-    prediction_all(test_dir=os.path.join(root_dir(), FilePath.validation_data_path[:2]),
+    prediction_all(test_dir=os.path.join(root_dir(), *FilePath.validation_data_path[:2]),
                    train_file_dir=os.path.join(root_dir(), FilePath.data_path[0]),
                    prediction_file_path=None,
-                   config=asdict(ClassifierParam(epochs=1)))
+                   config=asdict(ClassifierParam(epochs=4, batch_size=1, max_len=10, model_name='clue/roberta_chinese_base')))
     # print(Dataset.read_original_data((os.path.join(root_dir(), "data"), FilePath.data_path[1]) ,mode="test"))

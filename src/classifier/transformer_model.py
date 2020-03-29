@@ -1,8 +1,11 @@
 import abc
+import os
+
 import numpy as np
 from ktrain import text
 import ktrain
-
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
 class Classifier:
     @abc.abstractmethod
@@ -34,18 +37,25 @@ class TransformerClassifier(Classifier):
         self.epochs = epochs
 
     def predict(self, data: list):
-        prob = np.array(self.predictor.predict_proba(list(data)))[:, 1]
+        prob = np.array(self.predictor.predict_proba(list(data)))
+        return self.prob_convert_to_label(prob)
+
+    def prob_convert_to_label(self, prob):
+        prob = np.array(prob)
         labels = (prob > self.threshold).astype(int)
         return labels
 
     def predict_prob(self, data: list):
-        return self.predictor.predict_proba(data)
+        return self.predictor.predict_proba(data)[:, 1]
 
     def set_threshold(self, x, y):
         pov_num = (np.array(y) == 1).sum()
-        pov_prediction = np.array(self.predict_proba(list(x))[:, 1])
+        pov_prediction = np.array(self.predict_prob(list(x))[:, 1])
         self.threshold = np.sort(pov_prediction)[::-1][pov_num:pov_num + 2].mean()
         return self
+
+    def save_prob_prediction_result(self, prob, label_name, save_path):
+        pd.DataFrame(prob).to_csv(os.path.join(save_path, label_name+"prob"+str(self.threshold)), encoding="utf-8")
 
     def train(self, x, y):
         # only support binary classification
@@ -54,15 +64,19 @@ class TransformerClassifier(Classifier):
         neg_num = full_length - pov_num
 
         t = text.Transformer(self.model_name, maxlen=self.max_len, class_names=["0", "1"])
-        trn = t.preprocess_train(x, y.to_list())
-        val = t.preprocess_test(x[:100], y.to_list()[:100])
+        train_x, test_x, train_y, test_y = train_test_split(x, y, test_size=0.2)
+        trn = t.preprocess_train(train_x, train_y.to_list())
+        val = t.preprocess_test(test_x, test_y.to_list())
 
         model = t.get_classifier()
         learner = ktrain.get_learner(model, train_data=trn, val_data=val, batch_size=self.batch_size)
-        learner.fit_onecycle(self.learning_rate, self.epochs, class_weight={0: pov_num, 1: neg_num})
+        # TODO: disable class_weight
+        # TODO: add early top parameter into config
+        learner.autofit(self.learning_rate, self.epochs, class_weight={0: pov_num, 1: neg_num}, early_stopping=4, reduce_on_plateau=2)
 
         self.learner = learner
         self.predictor = ktrain.get_predictor(learner.model, t)
+        # TODO: lower number of x
         self.set_threshold(x, y)
 
         return self
