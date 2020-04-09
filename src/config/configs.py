@@ -16,6 +16,8 @@ class ClassifierParam:
     batch_size:int = 64
     learning_rate:float = 3e-5
     epochs:int = 3
+    early_stopping:int = 3
+    reduce_on_plateau:int = 1
 
 
 default_cls_parm = asdict(ClassifierParam())

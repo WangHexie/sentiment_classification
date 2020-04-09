@@ -9,8 +9,11 @@ from src.data.dataset import Dataset
 import pandas as pd
 
 
-def get_all_labels():
-    labels = Dataset.read_original_label()
+def get_all_labels(path=None):
+    if path is None:
+        labels = Dataset.read_original_label()
+    else:
+        labels = Dataset.read_original_label((path, FilePath.label_path[1]), mode="test")
     return set(labels.values.flatten().tolist()) - {''}
 
 
@@ -21,21 +24,24 @@ def save_result_in_dir(final, save_path):
 def prediction_all(test_dir=FilePath.validation_data_path[0],
                    train_file_dir=FilePath.data_path[0],
                    prediction_file_path=None,
-                   config=None):
-    labels = get_all_labels()
+                   config=None,
+                   temp_path=None):
+    labels = get_all_labels(train_file_dir)
     test_text = Dataset.read_original_data((test_dir, FilePath.data_path[1]), mode="test")
 
     Dataset.save_splitted_file(Dataset.read_original_data((train_file_dir, FilePath.data_path[1]), mode="test"),
                                Dataset.read_one_hot_label((train_file_dir, FilePath.label_path[1]), mode="test"),
                                dir_path=train_file_dir)
 
-    temp_path = root_dir()
+    if temp_path is None:
+        temp_path = root_dir()
 
     for label in labels:
+        print(label)
         train_data = Dataset.read_splitted_train_file(os.path.join(train_file_dir, label+".csv"))
         cls = TransformerClassifier(**config).train(train_data["data"], train_data["label"])
 
-        prob = cls.predict_prob(test_text["data"])
+        prob = cls.predict_prob(test_text["data"].values.tolist())
         cls.save_prob_prediction_result(prob, label, temp_path)
 
         label_prediction_result = cls.prob_convert_to_label(prob)

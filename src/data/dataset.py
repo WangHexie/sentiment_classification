@@ -77,7 +77,7 @@ class Dataset:
             temp = []
             for k in range(len(label_names)):
                 temp = temp + final_result[k][i]
-            result.append(temp[:3])  # TODO: bug inspect
+            result.append(temp)  # TODO: ============= bug inspect
 
         return result
 
@@ -88,4 +88,4 @@ class Dataset:
 
 
 if __name__ == '__main__':
-    print(Dataset.save_splitted_file(Dataset.read_original_data(FilePath.validation_data_path), Dataset.read_one_hot_label(FilePath.validation_label_path), dir_path='test'))
+    print(Dataset.save_splitted_file(Dataset.read_original_data(FilePath.validation_data_path), Dataset.read_one_hot_label(FilePath.validation_label_path), dir_path=os.path.join(root_dir(), "data", 'test')))
