@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from src.config.configs import FilePath
@@ -31,6 +32,10 @@ class Dataset:
         enc = MultiLabelBinarizer()
         new = enc.fit_transform(labels)
         return pd.DataFrame(new, columns=enc.classes_)
+
+    @staticmethod
+    def reverse_transform_one_hot_to_label(df_prediction):
+        return [np.array(df_prediction.columns)[i].tolist() for i in df_prediction.values]
 
     @staticmethod
     def read_one_hot_label(label_path=FilePath.label_path, mode="train"):

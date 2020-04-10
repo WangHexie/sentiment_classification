@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 from src.classifier.transformer_model import TransformerClassifier
 import os
+import numpy as np
 
 from src.config.configs import FilePath, ClassifierParam
 from src.data.basic_functions import root_dir
@@ -51,6 +52,20 @@ def prediction_all(test_dir=FilePath.validation_data_path[0],
     save_result_in_dir(final, prediction_file_path)
     # read train file by labels
     #
+
+
+def reverse_transform(df_prediction):
+    return [np.array(df_prediction.columns)[i].tolist() for i in df_prediction.values]
+
+
+def classifier_ensemble(prediction_paths, output_path):
+    from functools import reduce
+    preds = [Dataset.read_one_hot_label(label_path=(i,), mode="test").drop(columns=['']) for i in prediction_paths]
+    results = reduce(lambda a, b: a+b, preds)
+    results = results > 0
+    labels = reverse_transform(results)
+    pd.DataFrame(labels).to_csv(output_path, header=False, index=False, encoding="utf-8")
+
 
 if __name__ == '__main__':
     prediction_all(test_dir=os.path.join(root_dir(), *FilePath.validation_data_path[:2]),
