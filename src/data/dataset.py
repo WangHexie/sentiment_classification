@@ -39,7 +39,7 @@ class Dataset:
 
     @staticmethod
     def read_one_hot_label(label_path=FilePath.label_path, mode="train"):
-        return Dataset._transform_original_label_to_one_hot(Dataset.read_original_label(label_path, mode=mode).values)
+        return Dataset._transform_original_label_to_one_hot(Dataset.read_original_label(label_path, mode=mode).values).drop(columns=[''])
 
     @staticmethod
     def read_splitted_train_file(path):
