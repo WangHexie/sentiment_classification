@@ -1,5 +1,6 @@
 # 情感分类（sentiment classification）
-> 文本情感分类
+> 文本情感分类，多标签, Transformer, SOTA    
+***Multi-label classification based on Transformer***
 
 ## Requirements
 
