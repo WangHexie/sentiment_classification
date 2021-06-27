@@ -1,6 +1,9 @@
 # 情感分类（sentiment classification）
 > 文本情感分类，多标签, Transformer, SOTA    
-***Multi-label classification based on Transformer***
+***Multi-label classification based on Transformer***      
+
+
+***2020年“未来杯高校AI挑战赛” 战疫 赛道总决赛第二名***
 
 ## Requirements
 
