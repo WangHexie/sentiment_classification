@@ -1,5 +1,5 @@
 # 情感分类（sentiment classification）
-> 文本情感分类，多标签, Transformer, SOTA    
+> 文本情感分类，多标签, Transformer    
 ***Multi-label classification based on Transformer***      
 
 
